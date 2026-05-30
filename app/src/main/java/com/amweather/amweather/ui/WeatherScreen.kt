@@ -39,18 +39,43 @@ fun WeatherScreen(
             TopAppBar(
                 title = {
                     if (locations.size > 1) {
-                        // clickable location name opens switcher
-                        TextButton(onClick = { showLocationMenu = true }) {
-                            Text(
-                                selectedLocation?.name ?: "Weather",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                " ▾",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                        Box {
+                            TextButton(onClick = { showLocationMenu = true }) {
+                                Text(
+                                    selectedLocation?.name ?: "Weather",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    " ▾",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showLocationMenu,
+                                onDismissRequest = { showLocationMenu = false }
+                            ) {
+                                locations.forEach { loc ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Text(loc.name)
+                                                if (loc.id == selectedLocation?.id) {
+                                                    Text(
+                                                        "  ✓",
+                                                        color = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        onClick = {
+                                            vm.selectLocation(loc)
+                                            showLocationMenu = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     } else {
                         Text(selectedLocation?.name ?: "Weather")
@@ -62,20 +87,8 @@ fun WeatherScreen(
                     }
                 }
             )
-        }
+        },
     ) { padding ->
-        // location switcher dropdown
-        if (showLocationMenu && locations.size > 1) {
-            LocationSwitcherMenu(
-                locations = locations,
-                selected = selectedLocation,
-                onSelect = { loc ->
-                    vm.selectLocation(loc)
-                    showLocationMenu = false
-                },
-                onDismiss = { showLocationMenu = false }
-            )
-        }
 
         PullToRefreshBox(
             isRefreshing = isRefreshing,
@@ -158,38 +171,6 @@ fun WeatherScreen(
                         )
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LocationSwitcherMenu(
-    locations: List<Location>,
-    selected: Location?,
-    onSelect: (Location) -> Unit,
-    onDismiss: () -> Unit
-) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        DropdownMenu(
-            expanded = true,
-            onDismissRequest = onDismiss
-        ) {
-            locations.forEach { loc ->
-                DropdownMenuItem(
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(loc.name)
-                            if (loc.id == selected?.id) {
-                                Text(
-                                    "  ✓",
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    },
-                    onClick = { onSelect(loc) }
-                )
             }
         }
     }
