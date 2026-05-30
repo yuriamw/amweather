@@ -17,6 +17,8 @@ import com.amweather.amweather.data.weatherCodeToDescription
 import com.amweather.amweather.viewmodel.WeatherUiState
 import com.amweather.amweather.viewmodel.WeatherViewModel
 import com.amweather.amweather.data.windDirectionToText
+import androidx.compose.ui.unit.sp
+import com.amweather.amweather.data.weatherCodeToEmoji
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,6 +110,11 @@ fun WeatherScreen(
                     ) {
                         val w = s.data.current
                         val u = s.data.current_units
+
+                        Text(
+                            text = weatherCodeToEmoji(w.weather_code),
+                            style = MaterialTheme.typography.displayLarge.copy(fontSize = 72.sp)
+                        )
 
                         // temperature
                         Text(

@@ -41,6 +41,24 @@ fun weatherCodeToDescription(code: Int): String = when (code) {
     else -> "Unknown"
 }
 
+fun weatherCodeToEmoji(code: Int): String = when (code) {
+    0 -> "☀️"
+    1 -> "🌤️"
+    2 -> "⛅"
+    3 -> "☁️"
+    45, 48 -> "🌫️"
+    51, 53, 55 -> "🌦️"
+    61, 63 -> "🌧️"
+    65 -> "🌧️"
+    71, 73, 75 -> "❄️"
+    77 -> "🌨️"
+    80, 81, 82 -> "🌧️"
+    85, 86 -> "🌨️"
+    95 -> "⛈️"
+    96, 99 -> "⛈️"
+    else -> "🌡️"
+}
+
 fun windDirectionToText(degrees: Int): String {
     val directions = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
     val index = ((degrees + 22.5) / 45).toInt() % 8
