@@ -55,4 +55,24 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // HTTP client
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)          // logs requests in dev, easy to disable
+
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
+
+    // ViewModel + StateFlow integration with Compose
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // WorkManager for periodic background fetch
+    implementation(libs.androidx.work.runtime.ktx)
+
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.gson)
+    implementation(libs.androidx.compose.material.icons.extended)
 }

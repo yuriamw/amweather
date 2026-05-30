@@ -1,0 +1,98 @@
+package com.amweather.amweather.viewmodel
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.amweather.amweather.data.GeocodingApi
+import com.amweather.amweather.data.GeocodingResult
+import com.amweather.amweather.data.Location
+import com.amweather.amweather.data.SettingsRepository
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+
+sealed class SearchState {
+    data object Idle : SearchState()
+    data object Searching : SearchState()
+    data class Results(val items: List<GeocodingResult>) : SearchState()
+    data class Error(val message: String) : SearchState()
+}
+
+@OptIn(FlowPreview::class)
+class SettingsViewModel(app: Application) : AndroidViewModel(app) {
+
+    val repo = SettingsRepository.get(app)
+
+    val locations: StateFlow<List<Location>> = repo.locationsFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val defaultLocationId: StateFlow<String?> = repo.defaultLocationIdFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val useGps: StateFlow<Boolean> = repo.useGpsFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+
+    private val _searchState = MutableStateFlow<SearchState>(SearchState.Idle)
+    val searchState: StateFlow<SearchState> = _searchState
+
+    init {
+        // debounce search — wait 500ms after user stops typing
+        _searchQuery
+            .debounce(500)
+            .filter { it.length >= 2 }
+            .onEach { query ->
+                _searchState.value = SearchState.Searching
+                runCatching {
+                    GeocodingApi.service.searchCity(query)
+                }.fold(
+                    onSuccess = { response ->
+                        val results = response.results ?: emptyList()
+                        _searchState.value = if (results.isEmpty())
+                            SearchState.Error("No cities found")
+                        else
+                            SearchState.Results(results)
+                    },
+                    onFailure = {
+                        _searchState.value = SearchState.Error(it.message ?: "Search failed")
+                    }
+                )
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+        if (query.length < 2) _searchState.value = SearchState.Idle
+    }
+
+    fun addLocation(result: GeocodingResult) {
+        viewModelScope.launch {
+            val location = result.toLocation()
+            repo.addLocation(location)
+            // auto-set as default if it's the first one
+            if (locations.value.isEmpty()) {
+                repo.setDefaultLocationId(location.id)
+            }
+        }
+    }
+
+    fun removeLocation(locationId: String) {
+        viewModelScope.launch { repo.removeLocation(locationId) }
+    }
+
+    fun setDefault(locationId: String) {
+        viewModelScope.launch { repo.setDefaultLocationId(locationId) }
+    }
+
+    fun setUseGps(value: Boolean) {
+        viewModelScope.launch { repo.setUseGps(value) }
+    }
+
+    fun clearSearch() {
+        _searchQuery.value = ""
+        _searchState.value = SearchState.Idle
+    }
+}
