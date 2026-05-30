@@ -64,3 +64,8 @@ fun windDirectionToText(degrees: Int): String {
     val index = ((degrees + 22.5) / 45).toInt() % 8
     return directions[index]
 }
+
+fun convertPressure(mbar: Double, unit: String): String = when (unit) {
+    "mmhg" -> "${"%.0f".format(mbar * 0.750062)} mmHg"
+    else -> "$mbar mbar"
+}

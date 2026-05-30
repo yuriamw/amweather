@@ -30,6 +30,9 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
     val locations: StateFlow<List<Location>> = settingsRepo.locationsFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val pressureUnit: StateFlow<String> = settingsRepo.pressureUnitFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "mbar")
+
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Loading)
     val uiState: StateFlow<WeatherUiState> = _uiState
 

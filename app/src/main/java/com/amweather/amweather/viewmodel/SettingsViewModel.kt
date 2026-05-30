@@ -32,6 +32,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     val useGps: StateFlow<Boolean> = repo.useGpsFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val pressureUnit: StateFlow<String> = repo.pressureUnitFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "mbar")
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
@@ -94,5 +97,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun clearSearch() {
         _searchQuery.value = ""
         _searchState.value = SearchState.Idle
+    }
+
+    fun setPressureUnit(unit: String) {
+        viewModelScope.launch { repo.setPressureUnit(unit) }
     }
 }

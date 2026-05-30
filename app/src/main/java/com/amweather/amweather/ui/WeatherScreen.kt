@@ -19,6 +19,7 @@ import com.amweather.amweather.viewmodel.WeatherViewModel
 import com.amweather.amweather.data.windDirectionToText
 import androidx.compose.ui.unit.sp
 import com.amweather.amweather.data.weatherCodeToEmoji
+import com.amweather.amweather.data.convertPressure
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,6 +32,7 @@ fun WeatherScreen(
     val selectedLocation by vm.selectedLocation.collectAsStateWithLifecycle()
     val isRefreshing = state is WeatherUiState.Loading
     var showLocationMenu by remember { mutableStateOf(false) }
+    val pressureUnit by vm.pressureUnit.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -145,7 +147,7 @@ fun WeatherScreen(
                         )
                         WeatherDetailRow(
                             label = "Pressure",
-                            value = "${w.surface_pressure} ${u.surface_pressure}"
+                            value = convertPressure(w.surface_pressure, pressureUnit)
                         )
 
                         Spacer(Modifier.height(24.dp))

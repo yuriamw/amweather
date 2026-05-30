@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.amweather.amweather.data.Location
 import com.amweather.amweather.viewmodel.SettingsViewModel
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,6 +28,7 @@ fun SettingsScreen(
 ) {
     val locations by vm.locations.collectAsStateWithLifecycle()
     val defaultId by vm.defaultLocationId.collectAsStateWithLifecycle()
+    val pressureUnit by vm.pressureUnit.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -75,6 +79,38 @@ fun SettingsScreen(
                     onDelete = { vm.removeLocation(location.id) }
                 )
                 HorizontalDivider()
+            }
+            item {
+                HorizontalDivider()
+                Text(
+                    "Units",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Pressure", modifier = Modifier.weight(1f))
+                    SingleChoiceSegmentedButtonRow {
+                        SegmentedButton(
+                            selected = pressureUnit == "mbar",
+                            onClick = { vm.setPressureUnit("mbar") },
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                        ) { Text("mbar") }
+                        SegmentedButton(
+                            selected = pressureUnit == "mmhg",
+                            onClick = { vm.setPressureUnit("mmhg") },
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                        ) { Text("mmHg") }
+                    }
+                }
             }
         }
     }

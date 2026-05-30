@@ -28,6 +28,7 @@ class SettingsRepository private constructor(private val context: Context) {
         val KEY_LOCATIONS = stringPreferencesKey("locations")
         val KEY_DEFAULT_LOCATION_ID = stringPreferencesKey("default_location_id")
         val KEY_USE_GPS = booleanPreferencesKey("use_gps")
+        val KEY_PRESSURE_UNIT = stringPreferencesKey("pressure_unit")
     }
 
     val locationsFlow: Flow<List<Location>> = context.dataStore.data.map { prefs ->
@@ -42,6 +43,10 @@ class SettingsRepository private constructor(private val context: Context) {
 
     val useGpsFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[KEY_USE_GPS] ?: false
+    }
+
+    val pressureUnitFlow: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[KEY_PRESSURE_UNIT] ?: "mbar"
     }
 
     suspend fun addLocation(location: Location) {
@@ -73,6 +78,12 @@ class SettingsRepository private constructor(private val context: Context) {
     suspend fun setUseGps(useGps: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[KEY_USE_GPS] = useGps
+        }
+    }
+
+    suspend fun setPressureUnit(unit: String) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_PRESSURE_UNIT] = unit
         }
     }
 
