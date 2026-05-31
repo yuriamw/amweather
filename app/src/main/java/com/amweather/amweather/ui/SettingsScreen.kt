@@ -24,7 +24,8 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 fun SettingsScreen(
     vm: SettingsViewModel,
     onBack: () -> Unit,
-    onAddCity: () -> Unit
+    onAddCity: () -> Unit,
+    onIconPreview: () -> Unit  // add this
 ) {
     val locations by vm.locations.collectAsStateWithLifecycle()
     val defaultId by vm.defaultLocationId.collectAsStateWithLifecycle()
@@ -198,6 +199,17 @@ fun SettingsScreen(
                 }
             }
 
+            item {
+                HorizontalDivider()
+            }
+            item {
+                TextButton(
+                    onClick = onIconPreview,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                ) {
+                    Text("Dev: Icon Preview")
+                }
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.amweather.amweather.data
 
+import java.time.LocalTime
+
 data class WeatherResponse(
     val current: CurrentWeather,
     val current_units: CurrentUnits
@@ -68,4 +70,9 @@ fun windDirectionToText(degrees: Int): String {
 fun convertPressure(mbar: Double, unit: String): String = when (unit) {
     "mmhg" -> "${"%.0f".format(mbar * 0.750062)} mmHg"
     else -> "$mbar mbar"
+}
+
+fun isDaytime(): Boolean {
+    val hour = LocalTime.now().hour
+    return hour in 6..21
 }
