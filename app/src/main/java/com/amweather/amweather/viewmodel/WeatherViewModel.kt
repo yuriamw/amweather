@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.amweather.amweather.data.Location
 import com.amweather.amweather.data.SettingsRepository
+import com.amweather.amweather.data.WeatherCache
 import com.amweather.amweather.data.WeatherRepository
 import com.amweather.amweather.data.WeatherResponse
 import kotlinx.coroutines.flow.*
@@ -23,6 +24,7 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
 
     private val weatherRepo = WeatherRepository()
     private val settingsRepo = SettingsRepository.get(app)
+    private val cache = WeatherCache.get(app)
 
     private val _selectedLocation = MutableStateFlow<Location?>(null)
     val selectedLocation: StateFlow<Location?> = _selectedLocation
@@ -49,7 +51,7 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                 } else if (_selectedLocation.value == null) {
                     val default = locs.find { it.id == defaultId } ?: locs.first()
                     _selectedLocation.value = default
-                    fetchWeather(default)
+                    loadWeather(default)
                 }
             }
         }
@@ -57,21 +59,42 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun selectLocation(location: Location) {
         _selectedLocation.value = location
-        fetchWeather(location)
+        loadWeather(location)
+    }
+
+    // load from cache first, then fetch fresh
+    private fun loadWeather(location: Location) {
+        viewModelScope.launch {
+            // show cached data immediately if available
+            val cached = cache.flowFor(location.id).first()
+            if (cached != null) {
+                _uiState.value = WeatherUiState.Success(cached.response, cached.updatedAt, location)
+            } else {
+                _uiState.value = WeatherUiState.Loading
+            }
+            // always fetch fresh in background
+            fetchWeather(location)
+        }
     }
 
     fun fetchWeather(location: Location? = _selectedLocation.value) {
         val loc = location ?: return
         viewModelScope.launch {
-            _uiState.value = WeatherUiState.Loading
+            if (_uiState.value !is WeatherUiState.Success) {
+                _uiState.value = WeatherUiState.Loading
+            }
             weatherRepo.fetchWeather(loc.latitude, loc.longitude).fold(
                 onSuccess = { data ->
                     val time = LocalTime.now()
                         .format(DateTimeFormatter.ofPattern("HH:mm"))
+                    cache.store(loc.id, data, time)
                     _uiState.value = WeatherUiState.Success(data, time, loc)
                 },
                 onFailure = { err ->
-                    _uiState.value = WeatherUiState.Error(err.message ?: "Unknown error")
+                    // if we have cached data keep showing it with error toast
+                    if (_uiState.value !is WeatherUiState.Success) {
+                        _uiState.value = WeatherUiState.Error(err.message ?: "Unknown error")
+                    }
                 }
             )
         }

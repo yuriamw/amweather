@@ -29,6 +29,8 @@ fun SettingsScreen(
     val locations by vm.locations.collectAsStateWithLifecycle()
     val defaultId by vm.defaultLocationId.collectAsStateWithLifecycle()
     val pressureUnit by vm.pressureUnit.collectAsStateWithLifecycle()
+    val refreshValue by vm.refreshIntervalValue.collectAsStateWithLifecycle()
+    val refreshUnit by vm.refreshIntervalUnit.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -112,6 +114,90 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            item {
+                HorizontalDivider()
+            }
+
+            item {
+                Text(
+                    "Refresh Interval",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+
+            item {
+                val min = if (refreshUnit == "minutes") 15 else 1
+                val max = if (refreshUnit == "minutes") 59 else 24
+
+                // local draft so user can type freely
+                var draft by remember(refreshValue) { mutableStateOf(refreshValue.toString()) }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = {
+                            if (refreshValue > min) {
+                                vm.setRefreshInterval(refreshValue - 1, refreshUnit)
+                                draft = (refreshValue - 1).toString()
+                            }
+                        },
+                        enabled = refreshValue > min
+                    ) { Text("−", style = MaterialTheme.typography.titleLarge) }
+
+                    OutlinedTextField(
+                        value = draft,
+                        onValueChange = { input ->
+                            draft = input.filter { it.isDigit() }.take(2)
+                            val num = draft.toIntOrNull()
+                            if (num != null && num in min..max) {
+                                vm.setRefreshInterval(num, refreshUnit)
+                            }
+                        },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                        ),
+                        modifier = Modifier.width(72.dp),
+                        textStyle = MaterialTheme.typography.titleLarge.copy(
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    )
+
+                    IconButton(
+                        onClick = {
+                            if (refreshValue < max) {
+                                vm.setRefreshInterval(refreshValue + 1, refreshUnit)
+                                draft = (refreshValue + 1).toString()
+                            }
+                        },
+                        enabled = refreshValue < max
+                    ) { Text("+", style = MaterialTheme.typography.titleLarge) }
+
+                    Spacer(Modifier.weight(1f))
+
+                    SingleChoiceSegmentedButtonRow {
+                        SegmentedButton(
+                            selected = refreshUnit == "minutes",
+                            onClick = { if (refreshUnit != "minutes") vm.setRefreshInterval(15, "minutes") },
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                        ) { Text("min") }
+                        SegmentedButton(
+                            selected = refreshUnit == "hours",
+                            onClick = { if (refreshUnit != "hours") vm.setRefreshInterval(1, "hours") },
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                        ) { Text("hrs") }
+                    }
+                }
+            }
+
         }
     }
 }

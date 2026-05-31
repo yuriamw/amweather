@@ -29,7 +29,8 @@ class SettingsRepository private constructor(private val context: Context) {
         val KEY_DEFAULT_LOCATION_ID = stringPreferencesKey("default_location_id")
         val KEY_USE_GPS = booleanPreferencesKey("use_gps")
         val KEY_PRESSURE_UNIT = stringPreferencesKey("pressure_unit")
-    }
+        val KEY_REFRESH_INTERVAL_VALUE = androidx.datastore.preferences.core.intPreferencesKey("refresh_interval_value")
+        val KEY_REFRESH_INTERVAL_UNIT = stringPreferencesKey("refresh_interval_unit")    }
 
     val locationsFlow: Flow<List<Location>> = context.dataStore.data.map { prefs ->
         val json = prefs[KEY_LOCATIONS] ?: return@map emptyList()
@@ -47,6 +48,14 @@ class SettingsRepository private constructor(private val context: Context) {
 
     val pressureUnitFlow: Flow<String> = context.dataStore.data.map { prefs ->
         prefs[KEY_PRESSURE_UNIT] ?: "mbar"
+    }
+
+    val refreshIntervalValueFlow: Flow<Int> = context.dataStore.data.map { prefs ->
+        prefs[KEY_REFRESH_INTERVAL_VALUE] ?: 1
+    }
+
+    val refreshIntervalUnitFlow: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[KEY_REFRESH_INTERVAL_UNIT] ?: "hours"
     }
 
     suspend fun addLocation(location: Location) {
@@ -84,6 +93,13 @@ class SettingsRepository private constructor(private val context: Context) {
     suspend fun setPressureUnit(unit: String) {
         context.dataStore.edit { prefs ->
             prefs[KEY_PRESSURE_UNIT] = unit
+        }
+    }
+
+    suspend fun setRefreshInterval(value: Int, unit: String) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_REFRESH_INTERVAL_VALUE] = value
+            prefs[KEY_REFRESH_INTERVAL_UNIT] = unit
         }
     }
 

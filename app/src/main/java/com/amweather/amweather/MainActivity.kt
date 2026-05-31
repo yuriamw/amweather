@@ -14,6 +14,11 @@ import com.amweather.amweather.ui.WeatherScreen
 import com.amweather.amweather.ui.theme.AmweatherTheme
 import com.amweather.amweather.viewmodel.SettingsViewModel
 import com.amweather.amweather.viewmodel.WeatherViewModel
+import androidx.lifecycle.lifecycleScope
+import com.amweather.amweather.data.SettingsRepository
+import com.amweather.amweather.worker.WeatherWorker
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 object Routes {
     const val WEATHER = "weather"
@@ -25,6 +30,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // start periodic background fetch with saved interval
+        lifecycleScope.launch {
+            val repo = SettingsRepository.get(applicationContext)
+            val value = repo.refreshIntervalValueFlow.first()
+            val unit = repo.refreshIntervalUnitFlow.first()
+            WeatherWorker.schedule(applicationContext, value, unit)
+        }
+
         setContent {
             AmweatherTheme {
                 val navController = rememberNavController()

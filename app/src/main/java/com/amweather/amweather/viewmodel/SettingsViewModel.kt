@@ -10,6 +10,7 @@ import com.amweather.amweather.data.SettingsRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import com.amweather.amweather.worker.WeatherWorker
 
 sealed class SearchState {
     data object Idle : SearchState()
@@ -40,6 +41,12 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _searchState = MutableStateFlow<SearchState>(SearchState.Idle)
     val searchState: StateFlow<SearchState> = _searchState
+
+    val refreshIntervalValue: StateFlow<Int> = repo.refreshIntervalValueFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
+
+    val refreshIntervalUnit: StateFlow<String> = repo.refreshIntervalUnitFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "hours")
 
     init {
         // debounce search — wait 500ms after user stops typing
@@ -101,5 +108,12 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setPressureUnit(unit: String) {
         viewModelScope.launch { repo.setPressureUnit(unit) }
+    }
+
+    fun setRefreshInterval(value: Int, unit: String) {
+        viewModelScope.launch {
+            repo.setRefreshInterval(value, unit)
+            WeatherWorker.schedule(getApplication(), value, unit)
+        }
     }
 }
