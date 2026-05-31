@@ -1,21 +1,24 @@
-# Something here should show the weather.
+# Simple weather app for android.
 
-It's the first attempt to write a weather app for android.
+I never did any android app before. Neither knew that kotlin is a programming language.
 
-## Acknowledgements
+I literally have no idea how it works. It was written within claude chat.
 
-### Weather Icons
+# Acknowledgements
+
+## Weather Icons
+
 Weather icons are original Canvas drawings inspired by the design style of
 [Meteocons](https://bas.dev/work/meteocons) by Bas Milius, licensed under the
 [MIT License](https://github.com/basmilius/weather-icons/blob/dev/LICENSE).
 The icons were redrawn from scratch in Kotlin/Compose Canvas and are not a
 direct copy or conversion of the original SVG files.
 
-### Weather Data
+## Weather Data
 Weather data provided by [Open-Meteo](https://open-meteo.com/),
 licensed under [AGPL v3](https://github.com/open-meteo/open-meteo/blob/main/LICENSE).
 
-### Libraries
+## Libraries
 - [Retrofit](https://github.com/square/retrofit) — Apache 2.0
 - [OkHttp](https://github.com/square/okhttp) — Apache 2.0
 - [Gson](https://github.com/google/gson) — Apache 2.0
