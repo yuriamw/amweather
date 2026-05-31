@@ -20,13 +20,14 @@ import com.amweather.amweather.worker.WeatherWorker
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.amweather.amweather.ui.IconPreviewScreen
+import com.amweather.amweather.ui.AboutScreen
 
 
 object Routes {
     const val WEATHER = "weather"
     const val SETTINGS = "settings"
     const val CITY_SEARCH = "city_search"
-
+    const val ABOUT = "about"
     const val ICON_PREVIEW = "icon_preview"
 }
 
@@ -53,6 +54,9 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = Routes.WEATHER
                 ) {
+                    composable(Routes.ABOUT) {
+                        AboutScreen(onBack = { navController.popBackStack() })
+                    }
                     composable(Routes.ICON_PREVIEW) {
                         IconPreviewScreen(
                             onBack = { navController.popBackStack() }
@@ -69,10 +73,10 @@ class MainActivity : ComponentActivity() {
                             vm = settingsVm,
                             onBack = { navController.popBackStack() },
                             onAddCity = { navController.navigate(Routes.CITY_SEARCH) },
-                            onIconPreview = { navController.navigate(Routes.ICON_PREVIEW) }
+                            onIconPreview = { navController.navigate(Routes.ICON_PREVIEW) },
+                            onAbout = { navController.navigate(Routes.ABOUT) }
                         )
                     }
-
                     composable(Routes.CITY_SEARCH) {
                         CitySearchScreen(
                             vm = settingsVm,

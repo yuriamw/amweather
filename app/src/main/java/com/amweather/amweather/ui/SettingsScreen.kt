@@ -25,7 +25,8 @@ fun SettingsScreen(
     vm: SettingsViewModel,
     onBack: () -> Unit,
     onAddCity: () -> Unit,
-    onIconPreview: () -> Unit  // add this
+    onIconPreview: () -> Unit,
+    onAbout: () -> Unit
 ) {
     val locations by vm.locations.collectAsStateWithLifecycle()
     val defaultId by vm.defaultLocationId.collectAsStateWithLifecycle()
@@ -208,6 +209,14 @@ fun SettingsScreen(
                     modifier = Modifier.padding(horizontal = 8.dp)
                 ) {
                     Text("Dev: Icon Preview")
+                }
+            }
+            item {
+                TextButton(
+                    onClick = onAbout,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                ) {
+                    Text("About")
                 }
             }
         }

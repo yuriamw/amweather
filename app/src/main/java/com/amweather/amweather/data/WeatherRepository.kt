@@ -12,6 +12,12 @@ class WeatherRepository {
             level = HttpLoggingInterceptor.Level.BASIC
         }
         val client = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .header("User-Agent", "AMWeather/1.0 github.com/yuriamw/amweather")
+                    .build()
+                chain.proceed(request)
+            }
             .addInterceptor(logging)
             .build()
 

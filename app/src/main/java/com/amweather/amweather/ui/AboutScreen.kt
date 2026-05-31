@@ -1,0 +1,166 @@
+package com.amweather.amweather.ui
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AboutScreen(onBack: () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("About") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.height(24.dp))
+
+            // app icon placeholder + name
+            WeatherIcon(code = 0, size = 96.dp)
+            Spacer(Modifier.height(12.dp))
+            Text("AMWeather", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text("Version 1.0", style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "A minimal open source weather app for Android.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(Modifier.height(32.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(16.dp))
+
+            AboutSection(title = "License") {
+                Text(
+                    "AMWeather is free software released under the GNU General Public License v3.0.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(16.dp))
+
+            AboutSection(title = "Weather Data") {
+                AboutEntry(
+                    name = "Open-Meteo",
+                    description = "Free weather API, no key required.",
+                    license = "AGPL v3",
+                    url = "open-meteo.com"
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(16.dp))
+
+            AboutSection(title = "Weather Icons") {
+                AboutEntry(
+                    name = "Meteocons by Bas Milius",
+                    description = "Icons redrawn in Kotlin/Compose Canvas, inspired by Meteocons design.",
+                    license = "MIT",
+                    url = "bas.dev/work/meteocons"
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(16.dp))
+
+            AboutSection(title = "Libraries") {
+                val libs = listOf(
+                    Triple("Retrofit", "HTTP client", "Apache 2.0"),
+                    Triple("OkHttp", "HTTP layer", "Apache 2.0"),
+                    Triple("Gson", "JSON parsing", "Apache 2.0"),
+                    Triple("Jetpack Compose", "UI framework", "Apache 2.0"),
+                    Triple("WorkManager", "Background tasks", "Apache 2.0"),
+                    Triple("DataStore", "Preferences storage", "Apache 2.0"),
+                )
+                libs.forEach { (name, desc, license) ->
+                    AboutEntry(name = name, description = desc, license = license)
+                }
+            }
+
+            Spacer(Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+private fun AboutSection(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(Modifier.height(8.dp))
+        content()
+    }
+}
+
+@Composable
+private fun AboutEntry(
+    name: String,
+    description: String,
+    license: String,
+    url: String? = null
+) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            AssistChip(
+                onClick = {},
+                label = { Text(license, style = MaterialTheme.typography.labelSmall) }
+            )
+        }
+        Text(
+            description,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (url != null) {
+            Text(
+                url,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
