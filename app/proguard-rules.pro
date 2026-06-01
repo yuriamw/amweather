@@ -35,3 +35,28 @@
 -keep class okhttp3.** { *; }
 -dontwarn okhttp3.**
 -dontwarn okio.**
+
+# Keep WorkManager internal components intact
+-keep class androidx.work.impl.background.systemalarm.SystemAlarmService { *; }
+-keep class androidx.work.impl.background.systemjob.SystemJobService { *; }
+-keep class androidx.work.impl.foreground.SystemForegroundService { *; }
+-keep class androidx.work.impl.workers.DiagnosticsWorker { *; }
+
+# Keep Room database implementations used by WorkManager
+-keep class * extends androidx.room.RoomDatabase { *; }
+-dontwarn androidx.work.impl.**
+
+# Preserve generic signatures so TypeToken can read them at runtime
+-keepattributes Signature
+
+# Maintain Gson's specific annotation and internal handling
+-keepattributes *Annotation*
+-dontwarn sun.misc.**
+
+# Keep Gson's underlying type-handling classes
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken
+-keep public class * implements java.lang.reflect.Type { *; }
+
+# Keep your data models intact so Gson can map JSON fields to them
+-keep class com.amweather.amweather.data.** { *; }
