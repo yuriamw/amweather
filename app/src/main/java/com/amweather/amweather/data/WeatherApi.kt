@@ -30,16 +30,38 @@ interface WeatherApi {
         @Query("wind_speed_unit") windSpeedUnit: String = "ms"  // metres per second
     ): WeatherResponse
 
+    @GET("v1/forecast")
+    suspend fun getDailyData(
+        @Query("latitude") latitude: Double,
+        @Query("longitude") longitude: Double,
+        @Query("daily") sunrise: String = "sunrise",
+        @Query("daily") sunset: String = "sunset",
+        @Query("timezone") timezone: String = "auto",
+        @Query("forecast_days") forecastDays: Int = 1
+    ): DailyWeatherResponse
+
+    @GET("v1/forecast")
+    suspend fun getForecast(
+        @Query("latitude") latitude: Double,
+        @Query("longitude") longitude: Double,
+        @Query("hourly") hourlyTemperature: String = "temperature_2m",
+        @Query("hourly") hourlyWeatherCode: String = "weather_code",
+        @Query("daily") dailyWeatherCode: String = "weather_code",
+        @Query("daily") dailyTempMax: String = "temperature_2m_max",
+        @Query("daily") dailyTempMin: String = "temperature_2m_min",
+        @Query("timezone") timezone: String = "auto",
+        @Query("forecast_days") forecastDays: Int = 7,
+        @Query("past_days") pastDays: Int = 3
+    ): OpenMeteoForecastResponse
+
     companion object {
         const val BASE_URL = "https://api.open-meteo.com/"
-
-        // Fields we request from the API — keep this minimal
         const val CURRENT_FIELDS =
             "temperature_2m,apparent_temperature,relative_humidity_2m," +
                     "wind_speed_10m,wind_direction_10m,surface_pressure,weather_code"
-
-        // Kharkiv coordinates
+        const val DAILY_FIELDS = "sunrise,sunset,moon_phase"
         const val DEFAULT_LAT = 49.9935
         const val DEFAULT_LON = 36.2304
     }
+
 }

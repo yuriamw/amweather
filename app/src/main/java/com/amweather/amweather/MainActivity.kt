@@ -21,23 +21,23 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.amweather.amweather.data.SettingsRepository
+import com.amweather.amweather.ui.AboutScreen
 import com.amweather.amweather.ui.CitySearchScreen
+import com.amweather.amweather.ui.IconPreviewScreen
 import com.amweather.amweather.ui.SettingsScreen
 import com.amweather.amweather.ui.WeatherScreen
 import com.amweather.amweather.ui.theme.AmweatherTheme
 import com.amweather.amweather.viewmodel.SettingsViewModel
 import com.amweather.amweather.viewmodel.WeatherViewModel
-import androidx.lifecycle.lifecycleScope
-import com.amweather.amweather.data.SettingsRepository
 import com.amweather.amweather.worker.WeatherWorker
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import com.amweather.amweather.ui.IconPreviewScreen
-import com.amweather.amweather.ui.AboutScreen
 
 
 object Routes {

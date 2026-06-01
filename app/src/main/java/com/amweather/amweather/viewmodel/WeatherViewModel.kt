@@ -20,22 +20,38 @@ package com.amweather.amweather.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.amweather.amweather.data.ForecastData
 import com.amweather.amweather.data.Location
 import com.amweather.amweather.data.SettingsRepository
+import com.amweather.amweather.data.SunMoonData
 import com.amweather.amweather.data.WeatherCache
+import com.amweather.amweather.data.WeatherData
 import com.amweather.amweather.data.WeatherRepository
-import kotlinx.coroutines.flow.*
+import com.amweather.amweather.data.WeatherSource
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import kotlinx.coroutines.flow.map
-import com.amweather.amweather.data.WeatherData
-import com.amweather.amweather.data.WeatherSource
 
 sealed class WeatherUiState {
     data object Loading : WeatherUiState()
     data object NoLocations : WeatherUiState()
-    data class Success(val data: WeatherData, val updatedAt: String, val location: Location) : WeatherUiState()
+
+    data class Success(
+        val data: WeatherData,
+        val sunMoon: SunMoonData?,
+        val forecast: ForecastData?,
+        val updatedAt: String,
+        val location: Location
+    ) : WeatherUiState()
+
     data class Error(val message: String) : WeatherUiState()
 }
 
@@ -100,7 +116,10 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val cached = cache.flowFor(location.id).first()
             if (cached != null) {
-                _uiState.value = WeatherUiState.Success(cached.data, cached.updatedAt, location)
+                _uiState.value = WeatherUiState.Success(
+                    cached.data, cached.sunMoon, cached.forecast,
+                    cached.updatedAt, location
+                )
             } else {
                 _uiState.value = WeatherUiState.Loading
             }
@@ -115,12 +134,19 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                 _uiState.value = WeatherUiState.Loading
             }
             val source = weatherSource.value
-            weatherRepo.fetchWeather(loc.latitude, loc.longitude, source).fold(
+
+            val weatherResult = weatherRepo.fetchWeather(loc.latitude, loc.longitude, source)
+            val sunMoonResult = weatherRepo.fetchSunMoon(loc.latitude, loc.longitude)
+            val forecastResult = weatherRepo.fetchForecast(loc.latitude, loc.longitude, source)
+
+            weatherResult.fold(
                 onSuccess = { data ->
                     val time = LocalTime.now()
                         .format(DateTimeFormatter.ofPattern("HH:mm"))
-                    cache.store(loc.id, data, time)
-                    _uiState.value = WeatherUiState.Success(data, time, loc)
+                    val sunMoon = sunMoonResult.getOrNull()
+                    val forecast = forecastResult.getOrNull()
+                    cache.store(loc.id, data, sunMoon, forecast, time)
+                    _uiState.value = WeatherUiState.Success(data, sunMoon, forecast, time, loc)
                 },
                 onFailure = { err ->
                     if (_uiState.value !is WeatherUiState.Success) {
@@ -130,5 +156,4 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
             )
         }
     }
-
 }

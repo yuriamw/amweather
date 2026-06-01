@@ -54,6 +54,10 @@ class WeatherRepository {
         MetNorwayApi.create(USER_AGENT)
     }
 
+    private val metNorwaySunriseApi: MetNorwaySunriseService by lazy {
+        MetNorwaySunriseApi.create(USER_AGENT)
+    }
+
     suspend fun fetchWeather(
         lat: Double,
         lon: Double,
@@ -68,6 +72,62 @@ class WeatherRepository {
                     latitude = "%.4f".format(lat).toDouble(),
                     longitude = "%.4f".format(lon).toDouble()
                 ).toWeatherData()
+        }
+    }
+
+    suspend fun fetchSunMoon(
+        lat: Double,
+        lon: Double
+    ): Result<SunMoonData?> = runCatching {
+        // get sunrise/sunset from Open-Meteo
+        val sunData = openMeteoApi.getDailyData(
+            latitude = lat,
+            longitude = lon
+        ).toSunMoonData() ?: return@runCatching null
+
+        // get moon data from MET Norway
+        val date = todayDate()
+        val offset = utcOffset()
+        val roundedLat = "%.4f".format(lat).toDouble()
+        val roundedLon = "%.4f".format(lon).toDouble()
+
+        val moonData = runCatching {
+            metNorwaySunriseApi.getMoon(roundedLat, roundedLon, date, offset)
+        }.getOrNull()
+
+        val moonrise = moonData?.properties?.moonrise?.time?.let { parseTimeFromIso(it) }
+        val moonset = moonData?.properties?.moonset?.time?.let { parseTimeFromIso(it) }
+        val moonPhase = moonData?.properties?.moonphase
+
+        sunData.withMoonData(moonrise, moonset, moonPhase)
+    }
+
+    private fun todayDate(): String =
+        java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+
+    private fun utcOffset(): String {
+        val offset = java.time.ZoneId.systemDefault()
+            .rules.getOffset(java.time.Instant.now())
+        val totalMinutes = offset.totalSeconds / 60
+        val hours = totalMinutes / 60
+        val minutes = kotlin.math.abs(totalMinutes % 60)
+        return "%+03d:%02d".format(hours, minutes)
+    }
+
+    suspend fun fetchForecast(
+        lat: Double,
+        lon: Double,
+        source: WeatherSource
+    ): Result<ForecastData> = runCatching {
+        when (source) {
+            WeatherSource.OPEN_METEO ->
+                openMeteoApi.getForecast(latitude = lat, longitude = lon)
+                    .toForecastData()
+            WeatherSource.MET_NORWAY ->
+                metNorwayApi.getForecast(
+                    latitude = "%.4f".format(lat).toDouble(),
+                    longitude = "%.4f".format(lon).toDouble()
+                ).toForecastData()
         }
     }
 }

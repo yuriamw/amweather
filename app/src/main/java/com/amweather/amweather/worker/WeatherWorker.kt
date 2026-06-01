@@ -51,7 +51,12 @@ class WeatherWorker(
 
         for (location in locations) {
             weatherRepo.fetchWeather(location.latitude, location.longitude, source).fold(
-                onSuccess = { data -> cache.store(location.id, data, time) },
+                onSuccess = { data ->
+                    val sunMoon = weatherRepo.fetchSunMoon(location.latitude, location.longitude).getOrNull()
+                    val forecast = weatherRepo.fetchForecast(location.latitude, location.longitude, source).getOrNull()
+                    cache.store(location.id, data, sunMoon, forecast, time)
+                },
+
                 onFailure = { anyFailed = true }
             )
         }

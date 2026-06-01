@@ -24,12 +24,19 @@ import com.amweather.amweather.data.GeocodingApi
 import com.amweather.amweather.data.GeocodingResult
 import com.amweather.amweather.data.Location
 import com.amweather.amweather.data.SettingsRepository
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import com.amweather.amweather.worker.WeatherWorker
-import kotlinx.coroutines.flow.map
 import com.amweather.amweather.data.WeatherSource
+import com.amweather.amweather.worker.WeatherWorker
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 sealed class SearchState {
     data object Idle : SearchState()

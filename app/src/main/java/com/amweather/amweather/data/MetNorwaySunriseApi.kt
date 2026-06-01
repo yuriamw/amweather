@@ -22,21 +22,31 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface MetNorwayApiService {
+interface MetNorwaySunriseService {
 
-    @GET("weatherapi/locationforecast/2.0/compact")
-    suspend fun getForecast(
-        @Query("lat") latitude: Double,
-        @Query("lon") longitude: Double
-    ): MetNorwayResponse
+    @GET("weatherapi/sunrise/3.0/sun")
+    suspend fun getSun(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+        @Query("date") date: String,
+        @Query("offset") offset: String
+    ): SunriseResponse
+
+    @GET("weatherapi/sunrise/3.0/moon")
+    suspend fun getMoon(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+        @Query("date") date: String,
+        @Query("offset") offset: String
+    ): MoonriseResponse
 
     companion object {
         const val BASE_URL = "https://api.met.no/"
     }
 }
 
-object MetNorwayApi {
-    fun create(userAgent: String): MetNorwayApiService {
+object MetNorwaySunriseApi {
+    fun create(userAgent: String): MetNorwaySunriseService {
         val logging = okhttp3.logging.HttpLoggingInterceptor().apply {
             level = okhttp3.logging.HttpLoggingInterceptor.Level.BASIC
         }
@@ -51,10 +61,10 @@ object MetNorwayApi {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl(MetNorwayApiService.BASE_URL)
+            .baseUrl(MetNorwaySunriseService.BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(MetNorwayApiService::class.java)
+            .create(MetNorwaySunriseService::class.java)
     }
 }

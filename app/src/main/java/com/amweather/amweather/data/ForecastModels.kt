@@ -15,22 +15,27 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+
 package com.amweather.amweather.data
 
-// Source-agnostic weather model
-// Both Open-Meteo and MET Norway map into this
-data class WeatherData(
+data class HourlyForecast(
+    val time: String,           // "14:00"
+    val date: String,           // "2026-06-01"
     val temperature: Double,
-    val apparentTemperature: Double,
-    val humidity: Int,
-    val windSpeed: Double,
-    val windDirection: Int,
-    val pressure: Double,
     val weatherCode: Int,
-    val source: WeatherSource
+    val isCurrent: Boolean = false
 )
 
-enum class WeatherSource {
-    OPEN_METEO,
-    MET_NORWAY
-}
+data class DailyForecast(
+    val date: String,           // "2026-06-01"
+    val dayOfWeek: String,      // "Mon"
+    val tempDay: Double,
+    val tempNight: Double,
+    val weatherCode: Int,
+    val isCurrent: Boolean = false
+)
+
+data class ForecastData(
+    val hourly: List<HourlyForecast>,
+    val daily: List<DailyForecast>
+)

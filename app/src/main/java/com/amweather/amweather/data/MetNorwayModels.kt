@@ -1,7 +1,23 @@
-package com.amweather.amweather.data
+/*
+ * Copyright (C) 2026 yuriamw (https://github.com/yuriamw)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
 
-// MET Norway Locationforecast 2.0 compact response structure
-// https://api.met.no/weatherapi/locationforecast/2.0/documentation
+package com.amweather.amweather.data
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class MetNorwayResponse(
     val properties: MetNorwayProperties
@@ -87,4 +103,77 @@ fun MetNorwayResponse.toWeatherData(): WeatherData {
         weatherCode = symbolCodeToWeatherCode(symbolCode),
         source = WeatherSource.MET_NORWAY
     )
+}
+
+fun MetNorwayResponse.toForecastData(): ForecastData {
+    val now = LocalDateTime.now()
+    val today = LocalDate.now()
+    val formatter = java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
+
+    // hourly — keep 12 past + 48 future
+    val hourlyList = properties.timeseries.mapNotNull { entry ->
+        runCatching {
+            val dt = LocalDateTime.parse(entry.time, formatter)
+            val hoursFromNow = java.time.Duration.between(now, dt).toHours()
+            if (hoursFromNow < -12 || hoursFromNow > 48) return@mapNotNull null
+            val symbolCode = entry.data.next_1_hours?.summary?.symbol_code
+                ?: entry.data.next_6_hours?.summary?.symbol_code
+                ?: "clearsky"
+            HourlyForecast(
+                time = dt.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")),
+                date = dt.toLocalDate().toString(),
+                temperature = entry.data.instant.details.air_temperature,
+                weatherCode = symbolCodeToWeatherCode(symbolCode),
+                isCurrent = false
+            )
+        }.getOrNull()
+    }
+
+    // mark current hour
+    val currentIndex = hourlyList.indexOfFirst {
+        val dt = LocalDateTime.parse("${it.date}T${it.time}")
+        val h = java.time.Duration.between(now, dt).toHours()
+        h in -1..0
+    }.coerceAtLeast(0)
+    val hourly = hourlyList.mapIndexed { i, h ->
+        h.copy(isCurrent = i == currentIndex)
+    }
+
+    // daily — aggregate from 6-hourly entries
+    val dailyMap = mutableMapOf<LocalDate, MutableList<Double>>()
+    val dailyCodeMap = mutableMapOf<LocalDate, Int>()
+    properties.timeseries.forEach { entry ->
+        runCatching {
+            val dt = LocalDateTime.parse(entry.time, formatter)
+            val date = dt.toLocalDate()
+            val daysFromNow = java.time.temporal.ChronoUnit.DAYS.between(today, date)
+            if (daysFromNow < -3 || daysFromNow > 7) return@forEach
+            val temp = entry.data.instant.details.air_temperature
+            dailyMap.getOrPut(date) { mutableListOf() }.add(temp)
+            if (!dailyCodeMap.containsKey(date)) {
+                val symbolCode = entry.data.next_6_hours?.summary?.symbol_code
+                    ?: entry.data.next_1_hours?.summary?.symbol_code
+                    ?: "clearsky"
+                dailyCodeMap[date] = symbolCodeToWeatherCode(symbolCode)
+            }
+        }
+    }
+
+    val dailyList = dailyMap.entries.sortedBy { it.key }.mapNotNull { (date, temps) ->
+        runCatching {
+            DailyForecast(
+                date = date.toString(),
+                dayOfWeek = if (date == today) "Today"
+                else date.dayOfWeek.getDisplayName(
+                    java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()
+                ),
+                tempDay = temps.max(),
+                tempNight = temps.min(),
+                weatherCode = dailyCodeMap[date] ?: 0,
+                isCurrent = date == today
+            )
+        }.getOrNull()
+    }
+
+    return ForecastData(hourly = hourly, daily = dailyList)
 }
