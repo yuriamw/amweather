@@ -61,6 +61,9 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
         .map { runCatching { WeatherSource.valueOf(it) }.getOrDefault(WeatherSource.OPEN_METEO) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WeatherSource.OPEN_METEO)
 
+    val windUnit: StateFlow<String> = settingsRepo.windUnitFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "ms")
+
     init {
         // re-fetch when weather source changes
         viewModelScope.launch {

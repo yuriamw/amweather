@@ -71,3 +71,8 @@ fun isDaytime(): Boolean {
     val hour = LocalTime.now().hour
     return hour in 6..21
 }
+
+fun convertWind(ms: Double, unit: String): String = when (unit) {
+    "kmh" -> "${"%.1f".format(ms * 3.6)} km/h"
+    else -> "${"%.1f".format(ms)} m/s"
+}

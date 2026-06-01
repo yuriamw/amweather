@@ -71,6 +71,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         .map { runCatching { WeatherSource.valueOf(it) }.getOrDefault(WeatherSource.OPEN_METEO) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WeatherSource.OPEN_METEO)
 
+    val windUnit: StateFlow<String> = repo.windUnitFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "ms")
+
     init {
         // debounce search — wait 500ms after user stops typing
         _searchQuery
@@ -142,5 +145,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setWeatherSource(source: WeatherSource) {
         viewModelScope.launch { repo.setWeatherSource(source) }
+    }
+
+    fun setWindUnit(unit: String) {
+        viewModelScope.launch { repo.setWindUnit(unit) }
     }
 }

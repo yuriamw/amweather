@@ -38,6 +38,7 @@ import com.amweather.amweather.data.convertPressure
 import com.amweather.amweather.ui.WeatherIcon
 import com.amweather.amweather.data.WeatherData
 import com.amweather.amweather.data.WeatherSource
+import com.amweather.amweather.data.convertWind
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +52,7 @@ fun WeatherScreen(
     val isRefreshing = state is WeatherUiState.Loading
     var showLocationMenu by remember { mutableStateOf(false) }
     val pressureUnit by vm.pressureUnit.collectAsStateWithLifecycle()
+    val windUnit by vm.windUnit.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -162,7 +164,7 @@ fun WeatherScreen(
                         WeatherDetailRow("Humidity", "${w.humidity}%")
                         WeatherDetailRow(
                             "Wind",
-                            "${windDirectionToText(w.windDirection)} ${"%.1f".format(w.windSpeed)} m/s"
+                            "${windDirectionToText(w.windDirection)} ${convertWind(w.windSpeed, windUnit)}"
                         )
                         WeatherDetailRow("Pressure", convertPressure(w.pressure, pressureUnit))
                         Spacer(Modifier.height(24.dp))

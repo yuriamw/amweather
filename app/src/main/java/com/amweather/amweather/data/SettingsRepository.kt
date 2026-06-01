@@ -49,6 +49,7 @@ class SettingsRepository private constructor(private val context: Context) {
         val KEY_REFRESH_INTERVAL_VALUE = androidx.datastore.preferences.core.intPreferencesKey("refresh_interval_value")
         val KEY_REFRESH_INTERVAL_UNIT = stringPreferencesKey("refresh_interval_unit")    }
         val KEY_WEATHER_SOURCE = stringPreferencesKey("weather_source")
+        val KEY_WIND_UNIT = stringPreferencesKey("wind_unit")
 
     val locationsFlow: Flow<List<Location>> = context.dataStore.data.map { prefs ->
         val json = prefs[KEY_LOCATIONS] ?: return@map emptyList()
@@ -78,6 +79,10 @@ class SettingsRepository private constructor(private val context: Context) {
 
     val weatherSourceFlow: Flow<String> = context.dataStore.data.map { prefs ->
         prefs[KEY_WEATHER_SOURCE] ?: WeatherSource.OPEN_METEO.name
+    }
+
+    val windUnitFlow: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[KEY_WIND_UNIT] ?: "ms"
     }
 
     suspend fun addLocation(location: Location) {
@@ -134,6 +139,12 @@ class SettingsRepository private constructor(private val context: Context) {
     suspend fun setWeatherSource(source: WeatherSource) {
         context.dataStore.edit { prefs ->
             prefs[KEY_WEATHER_SOURCE] = source.name
+        }
+    }
+
+    suspend fun setWindUnit(unit: String) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_WIND_UNIT] = unit
         }
     }
 }

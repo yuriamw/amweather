@@ -53,6 +53,7 @@ fun SettingsScreen(
     val refreshValue by vm.refreshIntervalValue.collectAsStateWithLifecycle()
     val refreshUnit by vm.refreshIntervalUnit.collectAsStateWithLifecycle()
     val weatherSource by vm.weatherSource.collectAsStateWithLifecycle()
+    val windUnit by vm.windUnit.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -133,6 +134,29 @@ fun SettingsScreen(
                             onClick = { vm.setPressureUnit("mmhg") },
                             shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
                         ) { Text("mmHg") }
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Wind speed", modifier = Modifier.weight(1f))
+                    SingleChoiceSegmentedButtonRow {
+                        SegmentedButton(
+                            selected = windUnit == "ms",
+                            onClick = { vm.setWindUnit("ms") },
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                        ) { Text("m/s") }
+                        SegmentedButton(
+                            selected = windUnit == "kmh",
+                            onClick = { vm.setWindUnit("kmh") },
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                        ) { Text("km/h") }
                     }
                 }
             }
