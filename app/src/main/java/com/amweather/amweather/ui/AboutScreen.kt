@@ -74,7 +74,7 @@ fun AboutScreen(onBack: () -> Unit) {
             WeatherIcon(code = 0, size = 96.dp)
             Spacer(Modifier.height(12.dp))
             Text("AMWeather", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text("Version 1.0", style = MaterialTheme.typography.bodySmall,
+            Text("Version 0.1", style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Spacer(Modifier.height(8.dp))
