@@ -36,6 +36,8 @@ import com.amweather.amweather.viewmodel.WeatherViewModel
 import com.amweather.amweather.data.windDirectionToText
 import com.amweather.amweather.data.convertPressure
 import com.amweather.amweather.ui.WeatherIcon
+import com.amweather.amweather.data.WeatherData
+import com.amweather.amweather.data.WeatherSource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,50 +141,33 @@ fun WeatherScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        val w = s.data.current
-                        val u = s.data.current_units
+                        val w = s.data
 
-                        WeatherIcon(
-                            code = w.weather_code,
-                            size = 120.dp
-                        )
+                        WeatherIcon(code = w.weatherCode, size = 120.dp)
                         Spacer(Modifier.height(8.dp))
-
-                        // temperature
                         Text(
-                            "${w.temperature_2m}${u.temperature_2m}",
+                            "${"%.1f".format(w.temperature)}°C",
                             style = MaterialTheme.typography.displayLarge
                         )
                         Text(
-                            "Feels like ${w.apparent_temperature}${u.apparent_temperature}",
+                            "Feels like ${"%.1f".format(w.apparentTemperature)}°C",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-
                         Spacer(Modifier.height(4.dp))
-                        Text(weatherCodeToDescription(w.weather_code))
+                        Text(weatherCodeToDescription(w.weatherCode))
                         Spacer(Modifier.height(8.dp))
-
                         HorizontalDivider()
                         Spacer(Modifier.height(8.dp))
-
-                        // details grid
+                        WeatherDetailRow("Humidity", "${w.humidity}%")
                         WeatherDetailRow(
-                            label = "Humidity",
-                            value = "${w.relative_humidity_2m}${u.relative_humidity_2m}"
+                            "Wind",
+                            "${windDirectionToText(w.windDirection)} ${"%.1f".format(w.windSpeed)} m/s"
                         )
-                        WeatherDetailRow(
-                            label = "Wind",
-                            value = "${windDirectionToText(w.wind_direction_10m)} ${w.wind_speed_10m} ${u.wind_speed_10m}"
-                        )
-                        WeatherDetailRow(
-                            label = "Pressure",
-                            value = convertPressure(w.surface_pressure, pressureUnit)
-                        )
-
+                        WeatherDetailRow("Pressure", convertPressure(w.pressure, pressureUnit))
                         Spacer(Modifier.height(24.dp))
                         Text(
-                            "Updated: ${s.updatedAt}",
+                            "Updated: ${s.updatedAt} · ${w.source.displayName()}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -204,4 +189,9 @@ private fun WeatherDetailRow(label: String, value: String) {
         Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value)
     }
+}
+
+private fun WeatherSource.displayName() = when (this) {
+    WeatherSource.OPEN_METEO -> "Open-Meteo"
+    WeatherSource.MET_NORWAY -> "MET Norway"
 }

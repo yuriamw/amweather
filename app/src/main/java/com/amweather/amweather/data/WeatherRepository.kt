@@ -24,14 +24,18 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class WeatherRepository {
 
-    private val api: WeatherApi by lazy {
+    companion object {
+        const val USER_AGENT = "AMWeather/1.0 github.com/yuriamw/amweather"
+    }
+
+    private val openMeteoApi: WeatherApi by lazy {
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BASIC
         }
         val client = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
-                    .header("User-Agent", "AMWeather/1.0 github.com/yuriamw/amweather")
+                    .header("User-Agent", USER_AGENT)
                     .build()
                 chain.proceed(request)
             }
@@ -46,10 +50,24 @@ class WeatherRepository {
             .create(WeatherApi::class.java)
     }
 
+    private val metNorwayApi: MetNorwayApiService by lazy {
+        MetNorwayApi.create(USER_AGENT)
+    }
+
     suspend fun fetchWeather(
-        lat: Double = WeatherApi.DEFAULT_LAT,
-        lon: Double = WeatherApi.DEFAULT_LON
-    ): Result<WeatherResponse> = runCatching {
-        api.getCurrentWeather(latitude = lat, longitude = lon)
+        lat: Double,
+        lon: Double,
+        source: WeatherSource = WeatherSource.OPEN_METEO
+    ): Result<WeatherData> = runCatching {
+        when (source) {
+            WeatherSource.OPEN_METEO ->
+                openMeteoApi.getCurrentWeather(latitude = lat, longitude = lon)
+                    .toWeatherData()
+            WeatherSource.MET_NORWAY ->
+                metNorwayApi.getForecast(
+                    latitude = "%.4f".format(lat).toDouble(),
+                    longitude = "%.4f".format(lon).toDouble()
+                ).toWeatherData()
+        }
     }
 }

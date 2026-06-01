@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import com.amweather.amweather.data.WeatherSource
 
 class WeatherWorker(
     context: Context,
@@ -40,17 +41,18 @@ class WeatherWorker(
         val locations = settingsRepo.locationsFlow.first()
         if (locations.isEmpty()) return Result.success()
 
+        val sourceName = settingsRepo.weatherSourceFlow.first()
+        val source = runCatching { WeatherSource.valueOf(sourceName) }
+            .getOrDefault(WeatherSource.OPEN_METEO)
+
         var anyFailed = false
-        val time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))
+        val time = java.time.LocalTime.now()
+            .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
 
         for (location in locations) {
-            weatherRepo.fetchWeather(location.latitude, location.longitude).fold(
-                onSuccess = { response ->
-                    cache.store(location.id, response, time)
-                },
-                onFailure = {
-                    anyFailed = true
-                }
+            weatherRepo.fetchWeather(location.latitude, location.longitude, source).fold(
+                onSuccess = { data -> cache.store(location.id, data, time) },
+                onFailure = { anyFailed = true }
             )
         }
 

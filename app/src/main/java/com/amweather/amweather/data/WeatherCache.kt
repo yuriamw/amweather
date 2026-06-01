@@ -42,20 +42,19 @@ class WeatherCache private constructor(private val context: Context) {
     }
 
     data class CachedWeather(
-        val response: WeatherResponse,
+        val data: WeatherData,
         val updatedAt: String,
         val locationId: String
     )
 
-    private fun keyFor(locationId: String) =
-        stringPreferencesKey("weather_$locationId")
-
-    suspend fun store(locationId: String, response: WeatherResponse, updatedAt: String) {
-        val cached = CachedWeather(response, updatedAt, locationId)
+    suspend fun store(locationId: String, data: WeatherData, updatedAt: String) {
+        val cached = CachedWeather(data, updatedAt, locationId)
         context.weatherDataStore.edit { prefs ->
             prefs[keyFor(locationId)] = gson.toJson(cached)
         }
     }
+    private fun keyFor(locationId: String) =
+        stringPreferencesKey("weather_$locationId")
 
     fun flowFor(locationId: String): Flow<CachedWeather?> =
         context.weatherDataStore.data.map { prefs ->

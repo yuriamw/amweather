@@ -1,24 +1,9 @@
-/*
- * Copyright (C) 2026 yuriamw (https://github.com/yuriamw)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
 
 package com.amweather.amweather.data
 
 import java.time.LocalTime
 
+// Open-Meteo API response structure
 data class WeatherResponse(
     val current: CurrentWeather,
     val current_units: CurrentUnits
@@ -43,6 +28,17 @@ data class CurrentUnits(
     val surface_pressure: String
 )
 
+fun WeatherResponse.toWeatherData() = WeatherData(
+    temperature = current.temperature_2m,
+    apparentTemperature = current.apparent_temperature,
+    humidity = current.relative_humidity_2m,
+    windSpeed = current.wind_speed_10m,
+    windDirection = current.wind_direction_10m,
+    pressure = current.surface_pressure,
+    weatherCode = current.weather_code,
+    source = WeatherSource.OPEN_METEO
+)
+
 fun weatherCodeToDescription(code: Int): String = when (code) {
     0 -> "Clear sky"
     1 -> "Mainly clear"
@@ -58,24 +54,6 @@ fun weatherCodeToDescription(code: Int): String = when (code) {
     95 -> "Thunderstorm"
     96, 99 -> "Thunderstorm with hail"
     else -> "Unknown"
-}
-
-fun weatherCodeToEmoji(code: Int): String = when (code) {
-    0 -> "☀️"
-    1 -> "🌤️"
-    2 -> "⛅"
-    3 -> "☁️"
-    45, 48 -> "🌫️"
-    51, 53, 55 -> "🌦️"
-    61, 63 -> "🌧️"
-    65 -> "🌧️"
-    71, 73, 75 -> "❄️"
-    77 -> "🌨️"
-    80, 81, 82 -> "🌧️"
-    85, 86 -> "🌨️"
-    95 -> "⛈️"
-    96, 99 -> "⛈️"
-    else -> "🌡️"
 }
 
 fun windDirectionToText(degrees: Int): String {

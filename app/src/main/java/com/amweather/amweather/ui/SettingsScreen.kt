@@ -35,6 +35,8 @@ import com.amweather.amweather.viewmodel.SettingsViewModel
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import com.amweather.amweather.data.WeatherSource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +52,7 @@ fun SettingsScreen(
     val pressureUnit by vm.pressureUnit.collectAsStateWithLifecycle()
     val refreshValue by vm.refreshIntervalValue.collectAsStateWithLifecycle()
     val refreshUnit by vm.refreshIntervalUnit.collectAsStateWithLifecycle()
+    val weatherSource by vm.weatherSource.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -130,6 +133,66 @@ fun SettingsScreen(
                             onClick = { vm.setPressureUnit("mmhg") },
                             shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
                         ) { Text("mmHg") }
+                    }
+                }
+            }
+
+            item { HorizontalDivider() }
+
+            item {
+                Text(
+                    "Weather Source",
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            item {
+                var expanded by remember { mutableStateOf(false) }
+                val sources = listOf(
+                    WeatherSource.OPEN_METEO to "Open-Meteo",
+                    WeatherSource.MET_NORWAY to "MET Norway"
+                )
+                val selectedLabel = sources.first { it.first == weatherSource }.second
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Source", modifier = Modifier.weight(1f))
+                    Box {
+                        OutlinedButton(onClick = { expanded = true }) {
+                            Text(selectedLabel)
+                            Spacer(Modifier.width(4.dp))
+                            Text("▾")
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            sources.forEach { (source, label) ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(label)
+                                            if (source == weatherSource) {
+                                                Text(
+                                                    "  ✓",
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                    },
+                                    onClick = {
+                                        vm.setWeatherSource(source)
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
