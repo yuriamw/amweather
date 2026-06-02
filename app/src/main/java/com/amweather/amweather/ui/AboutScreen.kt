@@ -138,6 +138,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     Triple("OkHttp", "HTTP layer", "Apache 2.0"),
                     Triple("Gson", "JSON parsing", "Apache 2.0"),
                     Triple("Jetpack Compose", "UI framework", "Apache 2.0"),
+                    Triple("Navigation Compose", "In-app navigation", "Apache 2.0"),
                     Triple("WorkManager", "Background tasks", "Apache 2.0"),
                     Triple("DataStore", "Preferences storage", "Apache 2.0"),
                 )
