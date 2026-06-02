@@ -39,3 +39,39 @@ data class ForecastData(
     val hourly: List<HourlyForecast>,
     val daily: List<DailyForecast>
 )
+
+const val HOURLY_PAST_HOURS = 12L
+const val HOURLY_FUTURE_HOURS = 48L
+const val DAILY_PAST_DAYS = 3L
+const val DAILY_FUTURE_DAYS = 7L
+
+fun mergeMETNorwayForecast(cached: ForecastData?, fresh: ForecastData): ForecastData {
+    val now = java.time.LocalDateTime.now()
+    val today = java.time.LocalDate.now()
+
+    fun key(h: HourlyForecast) = "${h.date}T${h.time}"
+    fun hoursDiff(h: HourlyForecast) =
+        java.time.Duration.between(now, java.time.LocalDateTime.parse(key(h))).toHours()
+    fun daysDiff(d: DailyForecast) =
+        java.time.temporal.ChronoUnit.DAYS.between(today, java.time.LocalDate.parse(d.date))
+
+    // extract past entries within boundary eagerly — guards against stale cache content
+    val pastHourly = (cached?.hourly ?: emptyList())
+        .filter { hoursDiff(it) in -HOURLY_PAST_HOURS..-1 }
+    val mergedHourly = (fresh.hourly + pastHourly)
+        .distinctBy { key(it) }
+        .sortedBy { key(it) }
+        .filter { hoursDiff(it) in -HOURLY_PAST_HOURS..HOURLY_FUTURE_HOURS }
+
+    val currentIdx = mergedHourly.indexOfFirst { hoursDiff(it) in -1..0 }.coerceAtLeast(0)
+    val hourly = mergedHourly.mapIndexed { i, h -> h.copy(isCurrent = i == currentIdx) }
+
+    val pastDaily = (cached?.daily ?: emptyList())
+        .filter { daysDiff(it) in -DAILY_PAST_DAYS..-1 }
+    val daily = (fresh.daily + pastDaily)
+        .distinctBy { it.date }
+        .sortedBy { it.date }
+        .filter { daysDiff(it) in -DAILY_PAST_DAYS..DAILY_FUTURE_DAYS }
+
+    return ForecastData(hourly = hourly, daily = daily)
+}

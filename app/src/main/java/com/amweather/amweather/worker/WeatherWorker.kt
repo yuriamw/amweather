@@ -27,6 +27,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import com.amweather.amweather.data.WeatherSource
+import com.amweather.amweather.data.mergeMETNorwayForecast
 
 class WeatherWorker(
     context: Context,
@@ -53,7 +54,11 @@ class WeatherWorker(
             weatherRepo.fetchWeather(location.latitude, location.longitude, source).fold(
                 onSuccess = { data ->
                     val sunMoon = weatherRepo.fetchSunMoon(location.latitude, location.longitude, source).getOrNull()
-                    val forecast = weatherRepo.fetchForecast(location.latitude, location.longitude, source).getOrNull()
+                    val freshForecast = weatherRepo.fetchForecast(location.latitude, location.longitude, source).getOrNull()
+                    val forecast = if (source == WeatherSource.MET_NORWAY && freshForecast != null)
+                        mergeMETNorwayForecast(cache.flowFor(location.id).first()?.forecast, freshForecast)
+                    else
+                        freshForecast
                     cache.store(location.id, data, sunMoon, forecast, time)
                 },
 

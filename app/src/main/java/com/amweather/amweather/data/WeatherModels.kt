@@ -202,7 +202,7 @@ fun OpenMeteoForecastResponse.toForecastData(): ForecastData {
         runCatching {
             val dt = LocalDateTime.parse(timeStr)
             val hoursFromNow = java.time.Duration.between(now, dt).toHours()
-            if (hoursFromNow < -12 || hoursFromNow > 48) return@mapIndexedNotNull null
+            if (hoursFromNow < -HOURLY_PAST_HOURS || hoursFromNow > HOURLY_FUTURE_HOURS) return@mapIndexedNotNull null
             HourlyForecast(
                 time = dt.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")),
                 date = dt.toLocalDate().toString(),
@@ -229,7 +229,7 @@ fun OpenMeteoForecastResponse.toForecastData(): ForecastData {
         runCatching {
             val date = LocalDate.parse(dateStr)
             val daysFromNow = java.time.temporal.ChronoUnit.DAYS.between(today, date)
-            if (daysFromNow < -3 || daysFromNow > 7) return@mapIndexedNotNull null
+            if (daysFromNow < -DAILY_PAST_DAYS || daysFromNow > DAILY_FUTURE_DAYS) return@mapIndexedNotNull null
             DailyForecast(
                 date = dateStr,
                 dayOfWeek = if (date == today) "Today"

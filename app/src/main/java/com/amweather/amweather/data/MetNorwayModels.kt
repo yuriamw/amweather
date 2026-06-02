@@ -126,7 +126,7 @@ fun MetNorwayResponse.toForecastData(): ForecastData {
         runCatching {
             val dt = java.time.ZonedDateTime.parse(entry.time, formatter).toLocalDateTime()
             val hoursFromNow = java.time.Duration.between(now, dt).toHours()
-            if (hoursFromNow < -12 || hoursFromNow > 48) return@mapNotNull null
+            if (hoursFromNow < -HOURLY_PAST_HOURS || hoursFromNow > HOURLY_FUTURE_HOURS) return@mapNotNull null
             val symbolCode = entry.data.next_1_hours?.summary?.symbol_code
                 ?: entry.data.next_6_hours?.summary?.symbol_code
                 ?: "clearsky"
@@ -158,7 +158,7 @@ fun MetNorwayResponse.toForecastData(): ForecastData {
             val dt = java.time.ZonedDateTime.parse(entry.time, formatter).toLocalDateTime()
             val date = dt.toLocalDate()
             val daysFromNow = java.time.temporal.ChronoUnit.DAYS.between(today, date)
-            if (daysFromNow < -3 || daysFromNow > 7) return@forEach
+            if (daysFromNow < -DAILY_PAST_DAYS || daysFromNow > DAILY_FUTURE_DAYS) return@forEach
             val temp = entry.data.instant.details.air_temperature
             dailyMap.getOrPut(date) { mutableListOf() }.add(temp)
             if (!dailyCodeMap.containsKey(date)) {

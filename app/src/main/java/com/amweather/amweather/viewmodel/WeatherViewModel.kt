@@ -21,6 +21,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.amweather.amweather.data.ForecastData
+import com.amweather.amweather.data.mergeMETNorwayForecast
 import com.amweather.amweather.data.Location
 import com.amweather.amweather.data.SettingsRepository
 import com.amweather.amweather.data.SunMoonData
@@ -157,7 +158,11 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                         .format(DateTimeFormatter.ofPattern("HH:mm"))
                     val sunMoon = sunMoonResult.getOrNull()
                     val sunMoonError = sunMoonResult.exceptionOrNull()?.message
-                    val forecast = forecastResult.getOrNull()
+                    val freshForecast = forecastResult.getOrNull()
+                    val forecast = if (source == WeatherSource.MET_NORWAY && freshForecast != null)
+                        mergeMETNorwayForecast(cache.flowFor(loc.id).first()?.forecast, freshForecast)
+                    else
+                        freshForecast
                     cache.store(loc.id, data, sunMoon, forecast, time)
                     _uiState.value = WeatherUiState.Success(
                         data, sunMoon, forecast, time, loc,
