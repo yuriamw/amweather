@@ -107,6 +107,12 @@ fun AboutScreen(onBack: () -> Unit) {
                     license = "AGPL v3",
                     url = "open-meteo.com"
                 )
+                AboutEntry(
+                    name = "MET Norway",
+                    description = "Weather and sun/moon data from the Norwegian Meteorological Institute.",
+                    license = "NLOD 2.0 / CC BY 4.0",
+                    url = "api.met.no"
+                )
             }
 
             Spacer(Modifier.height(16.dp))

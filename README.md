@@ -18,6 +18,10 @@ direct copy or conversion of the original SVG files.
 Weather data provided by [Open-Meteo](https://open-meteo.com/),
 licensed under [AGPL v3](https://github.com/open-meteo/open-meteo/blob/main/LICENSE).
 
+Sun, moon and weather data also provided by [MET Norway](https://api.met.no/),
+licensed under the [Norwegian Licence for Open Government Data (NLOD) v2.0](https://data.norge.no/nlod/en/2.0)
+and [Creative Commons 4.0 BY International](https://creativecommons.org/licenses/by/4.0/).
+
 ## Libraries
 - [Retrofit](https://github.com/square/retrofit) — Apache 2.0
 - [OkHttp](https://github.com/square/okhttp) — Apache 2.0
