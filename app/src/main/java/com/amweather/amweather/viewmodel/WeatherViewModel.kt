@@ -148,7 +148,7 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
             val source = weatherSource.value
 
             val weatherResult = weatherRepo.fetchWeather(loc.latitude, loc.longitude, source)
-            val sunMoonResult = weatherRepo.fetchSunMoon(loc.latitude, loc.longitude)
+            val sunMoonResult = weatherRepo.fetchSunMoon(loc.latitude, loc.longitude, source)
             val forecastResult = weatherRepo.fetchForecast(loc.latitude, loc.longitude, source)
 
             weatherResult.fold(

@@ -55,7 +55,8 @@ data class DailyWeatherResponse(
 
 data class DailyWeather(
     val sunrise: List<String>,
-    val sunset: List<String>
+    val sunset: List<String>,
+    val moon_phase: List<Double>?
 )
 
 data class SunMoonData(
@@ -178,14 +179,15 @@ fun moonDegreesToEmoji(degrees: Double): String = when {
 fun DailyWeatherResponse.toSunMoonData(): SunMoonData? {
     val d = daily
     if (d.sunrise.isEmpty()) return null
+    val moonPhase = d.moon_phase?.firstOrNull()?.times(360.0)
     return SunMoonData(
         sunrise = parseTimeFromIso(d.sunrise.firstOrNull()) ?: return null,
         sunset = parseTimeFromIso(d.sunset.firstOrNull()) ?: return null,
         moonrise = null,
         moonset = null,
-        moonPhaseDegrees = null,
-        moonPhaseDescription = null,
-        moonPhaseEmoji = null
+        moonPhaseDegrees = moonPhase,
+        moonPhaseDescription = moonPhase?.let { moonDegreesToDescription(it) },
+        moonPhaseEmoji = moonPhase?.let { moonDegreesToEmoji(it) }
     )
 }
 

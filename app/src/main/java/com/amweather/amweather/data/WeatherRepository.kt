@@ -79,29 +79,45 @@ class WeatherRepository {
 
     suspend fun fetchSunMoon(
         lat: Double,
-        lon: Double
+        lon: Double,
+        source: WeatherSource
     ): Result<SunMoonData?> = runCatching {
-        // get sunrise/sunset from Open-Meteo
-        val sunData = openMeteoApi.getDailyData(
-            latitude = lat,
-            longitude = lon
-        ).toSunMoonData() ?: return@runCatching null
+        when (source) {
+            WeatherSource.OPEN_METEO -> {
+                openMeteoApi.getDailyData(latitude = lat, longitude = lon)
+                    .toSunMoonData()
+            }
+            WeatherSource.MET_NORWAY -> {
+                val date = todayDate()
+                val offset = utcOffset()
+                val roundedLat = lat.round4()
+                val roundedLon = lon.round4()
 
-        // get moon data from MET Norway
-        val date = todayDate()
-        val offset = utcOffset()
-        val roundedLat = lat.round4()
-        val roundedLon = lon.round4()
+                val sunData = metNorwaySunriseApi.getSun(roundedLat, roundedLon, date, offset)
+                val sunrise = parseTimeFromIso(sunData.properties.sunrise?.time)
+                    ?: return@runCatching null
+                val sunset = parseTimeFromIso(sunData.properties.sunset?.time)
+                    ?: return@runCatching null
 
-        val moonData = runCatching {
-            metNorwaySunriseApi.getMoon(roundedLat, roundedLon, date, offset)
-        }.getOrNull()
+                val moonData = runCatching {
+                    metNorwaySunriseApi.getMoon(roundedLat, roundedLon, date, offset)
+                }.getOrNull()
 
-        val moonrise = moonData?.properties?.moonrise?.time?.let { parseTimeFromIso(it) }
-        val moonset = moonData?.properties?.moonset?.time?.let { parseTimeFromIso(it) }
-        val moonPhase = moonData?.properties?.moonphase
+                val moonrise = moonData?.properties?.moonrise?.time?.let { parseTimeFromIso(it) }
+                val moonset = moonData?.properties?.moonset?.time?.let { parseTimeFromIso(it) }
+                val moonPhase = moonData?.properties?.moonphase
 
-        sunData.withMoonData(moonrise, moonset, moonPhase)
+                SunMoonData(
+                    sunrise = sunrise,
+                    sunset = sunset,
+                    moonrise = moonrise,
+                    moonset = moonset,
+                    moonPhaseDegrees = moonPhase,
+                    moonPhaseDescription = moonPhase?.let { moonDegreesToDescription(it) },
+                    moonPhaseEmoji = moonPhase?.let { moonDegreesToEmoji(it) }
+                )
+            }
+        }
     }
 
     private fun todayDate(): String =
