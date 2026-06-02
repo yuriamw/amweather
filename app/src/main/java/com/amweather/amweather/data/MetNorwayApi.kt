@@ -24,7 +24,7 @@ import retrofit2.http.Query
 
 interface MetNorwayApiService {
 
-    @GET("weatherapi/locationforecast/2.0/compact")
+    @GET("weatherapi/locationforecast/2.0/complete")
     suspend fun getForecast(
         @Query("lat") latitude: Double,
         @Query("lon") longitude: Double

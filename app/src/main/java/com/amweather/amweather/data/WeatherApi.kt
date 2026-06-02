@@ -58,7 +58,7 @@ interface WeatherApi {
         const val BASE_URL = "https://api.open-meteo.com/"
         const val CURRENT_FIELDS =
             "temperature_2m,apparent_temperature,relative_humidity_2m," +
-                    "wind_speed_10m,wind_direction_10m,surface_pressure,weather_code"
+                    "wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,weather_code"
         const val DAILY_FIELDS = "sunrise,sunset"
         const val DEFAULT_LAT = 49.9935
         const val DEFAULT_LON = 36.2304

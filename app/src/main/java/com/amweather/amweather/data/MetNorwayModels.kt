@@ -47,6 +47,7 @@ data class MetNorwayDetails(
     val relative_humidity: Double,
     val wind_speed: Double,
     val wind_from_direction: Double,
+    val wind_speed_of_gust: Double?,
     val air_pressure_at_sea_level: Double
 )
 
@@ -86,9 +87,18 @@ fun symbolCodeToWeatherCode(symbolCode: String): Int {
 }
 
 fun MetNorwayResponse.toWeatherData(): WeatherData {
-    val current = properties.timeseries.firstOrNull()
-        ?: throw Exception("No forecast data available")
+    val formatter = java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
+    val now = LocalDateTime.now()
+    val current = properties.timeseries.minByOrNull { entry ->
+        runCatching {
+            val dt = LocalDateTime.parse(entry.time, formatter)
+            Math.abs(java.time.Duration.between(now, dt).toMinutes())
+        }.getOrElse { Long.MAX_VALUE }
+    } ?: throw Exception("No forecast data available")
     val details = current.data.instant.details
+
+
+
     val symbolCode = current.data.next_1_hours?.summary?.symbol_code
         ?: current.data.next_6_hours?.summary?.symbol_code
         ?: "clearsky"
@@ -99,6 +109,7 @@ fun MetNorwayResponse.toWeatherData(): WeatherData {
         humidity = details.relative_humidity.toInt(),
         windSpeed = details.wind_speed,
         windDirection = details.wind_from_direction.toInt(),
+        windGust = details.wind_speed_of_gust,
         pressure = details.air_pressure_at_sea_level,
         weatherCode = symbolCodeToWeatherCode(symbolCode),
         source = WeatherSource.MET_NORWAY

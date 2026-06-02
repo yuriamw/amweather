@@ -214,6 +214,9 @@ fun WeatherScreen(
                             "Wind",
                             "${windDirectionToText(w.windDirection)} ${convertWind(w.windSpeed, windUnit)}"
                         )
+                        w.windGust?.let {
+                            WeatherDetailRow("Gusts", convertWind(it, windUnit))
+                        }
                         WeatherDetailRow("Pressure", convertPressure(w.pressure, pressureUnit))
                         s.sunMoon?.let { sm ->
                             Spacer(Modifier.height(8.dp))

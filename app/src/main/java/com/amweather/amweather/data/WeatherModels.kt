@@ -36,6 +36,7 @@ data class CurrentWeather(
     val relative_humidity_2m: Int,
     val wind_speed_10m: Double,
     val wind_direction_10m: Int,
+    val wind_gusts_10m: Double?,
     val surface_pressure: Double,
     val weather_code: Int
 )
@@ -94,6 +95,7 @@ fun WeatherResponse.toWeatherData() = WeatherData(
     humidity = current.relative_humidity_2m,
     windSpeed = current.wind_speed_10m,
     windDirection = current.wind_direction_10m,
+    windGust = current.wind_gusts_10m,
     pressure = current.surface_pressure,
     weatherCode = current.weather_code,
     source = WeatherSource.OPEN_METEO
