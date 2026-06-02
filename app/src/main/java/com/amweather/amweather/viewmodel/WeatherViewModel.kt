@@ -65,6 +65,7 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
     private val cache = WeatherCache.get(app)
 
     private val _selectedLocation = MutableStateFlow<Location?>(null)
+    private var cacheObserverJob: kotlinx.coroutines.Job? = null
     val selectedLocation: StateFlow<Location?> = _selectedLocation
 
     val locations: StateFlow<List<Location>> = settingsRepo.locationsFlow
@@ -114,7 +115,8 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
         loadWeather(location)
     }
 
-    // load from cache first, then fetch fresh
+    // load from cache first, then fetch fresh; keep observing cache so
+    // background worker updates are reflected without user interaction
     private fun loadWeather(location: Location) {
         viewModelScope.launch {
             val cached = cache.flowFor(location.id).first()
@@ -127,6 +129,20 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                 _uiState.value = WeatherUiState.Loading
             }
             fetchWeather(location)
+        }
+
+        cacheObserverJob?.cancel()
+        cacheObserverJob = viewModelScope.launch {
+            cache.flowFor(location.id)
+                .drop(1) // skip initial value already handled above
+                .collect { cached ->
+                    if (cached != null) {
+                        _uiState.value = WeatherUiState.Success(
+                            cached.data, cached.sunMoon, cached.forecast,
+                            cached.updatedAt, location
+                        )
+                    }
+                }
         }
     }
 
