@@ -91,7 +91,7 @@ fun MetNorwayResponse.toWeatherData(): WeatherData {
     val now = LocalDateTime.now()
     val current = properties.timeseries.minByOrNull { entry ->
         runCatching {
-            val dt = LocalDateTime.parse(entry.time, formatter)
+            val dt = java.time.ZonedDateTime.parse(entry.time, formatter).toLocalDateTime()
             Math.abs(java.time.Duration.between(now, dt).toMinutes())
         }.getOrElse { Long.MAX_VALUE }
     } ?: throw Exception("No forecast data available")
@@ -124,7 +124,7 @@ fun MetNorwayResponse.toForecastData(): ForecastData {
     // hourly — keep 12 past + 48 future
     val hourlyList = properties.timeseries.mapNotNull { entry ->
         runCatching {
-            val dt = LocalDateTime.parse(entry.time, formatter)
+            val dt = java.time.ZonedDateTime.parse(entry.time, formatter).toLocalDateTime()
             val hoursFromNow = java.time.Duration.between(now, dt).toHours()
             if (hoursFromNow < -12 || hoursFromNow > 48) return@mapNotNull null
             val symbolCode = entry.data.next_1_hours?.summary?.symbol_code
@@ -155,7 +155,7 @@ fun MetNorwayResponse.toForecastData(): ForecastData {
     val dailyCodeMap = mutableMapOf<LocalDate, Int>()
     properties.timeseries.forEach { entry ->
         runCatching {
-            val dt = LocalDateTime.parse(entry.time, formatter)
+            val dt = java.time.ZonedDateTime.parse(entry.time, formatter).toLocalDateTime()
             val date = dt.toLocalDate()
             val daysFromNow = java.time.temporal.ChronoUnit.DAYS.between(today, date)
             if (daysFromNow < -3 || daysFromNow > 7) return@forEach
