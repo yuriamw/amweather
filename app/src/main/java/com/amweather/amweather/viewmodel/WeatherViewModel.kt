@@ -49,7 +49,9 @@ sealed class WeatherUiState {
         val sunMoon: SunMoonData?,
         val forecast: ForecastData?,
         val updatedAt: String,
-        val location: Location
+        val location: Location,
+        val fetchError: String? = null,
+        val sunMoonError: String? = null
     ) : WeatherUiState()
 
     data class Error(val message: String) : WeatherUiState()
@@ -127,6 +129,16 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun dismissFetchError() {
+        val s = _uiState.value as? WeatherUiState.Success ?: return
+        _uiState.value = s.copy(fetchError = null)
+    }
+
+    fun dismissSunMoonError() {
+        val s = _uiState.value as? WeatherUiState.Success ?: return
+        _uiState.value = s.copy(sunMoonError = null)
+    }
+
     fun fetchWeather(location: Location? = _selectedLocation.value) {
         val loc = location ?: return
         viewModelScope.launch {
@@ -144,13 +156,21 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                     val time = LocalTime.now()
                         .format(DateTimeFormatter.ofPattern("HH:mm"))
                     val sunMoon = sunMoonResult.getOrNull()
+                    val sunMoonError = sunMoonResult.exceptionOrNull()?.message
                     val forecast = forecastResult.getOrNull()
                     cache.store(loc.id, data, sunMoon, forecast, time)
-                    _uiState.value = WeatherUiState.Success(data, sunMoon, forecast, time, loc)
+                    _uiState.value = WeatherUiState.Success(
+                        data, sunMoon, forecast, time, loc,
+                        sunMoonError = sunMoonError
+                    )
                 },
                 onFailure = { err ->
-                    if (_uiState.value !is WeatherUiState.Success) {
-                        _uiState.value = WeatherUiState.Error(err.message ?: "Unknown error")
+                    val msg = err.message ?: "Unknown error"
+                    val current = _uiState.value
+                    if (current is WeatherUiState.Success) {
+                        _uiState.value = current.copy(fetchError = msg)
+                    } else {
+                        _uiState.value = WeatherUiState.Error(msg)
                     }
                 }
             )

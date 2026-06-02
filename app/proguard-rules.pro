@@ -36,6 +36,9 @@
 -dontwarn okhttp3.**
 -dontwarn okio.**
 
+# Keep WorkManager worker classes (instantiated by name via reflection)
+-keep class com.amweather.amweather.worker.** { *; }
+
 # Keep WorkManager internal components intact
 -keep class androidx.work.impl.background.systemalarm.SystemAlarmService { *; }
 -keep class androidx.work.impl.background.systemjob.SystemJobService { *; }

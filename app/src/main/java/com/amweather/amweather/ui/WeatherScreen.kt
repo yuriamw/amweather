@@ -35,7 +35,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -177,6 +179,19 @@ fun WeatherScreen(
                         modifier = Modifier.padding(16.dp)
                     ) {
                         val w = s.data
+
+                        s.fetchError?.let { err ->
+                            ErrorBanner(
+                                message = "Weather error: $err",
+                                onDismiss = { vm.dismissFetchError() }
+                            )
+                        }
+                        s.sunMoonError?.let { err ->
+                            ErrorBanner(
+                                message = "Sun/moon error: $err",
+                                onDismiss = { vm.dismissSunMoonError() }
+                            )
+                        }
 
                         WeatherIcon(code = w.weatherCode, size = 120.dp)
                         Spacer(Modifier.height(8.dp))
@@ -399,6 +414,39 @@ private fun DailyItem(item: DailyForecast) {
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary
             )
+        }
+    }
+}
+
+@Composable
+private fun ErrorBanner(message: String, onDismiss: () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 12.dp, top = 2.dp, bottom = 2.dp, end = 2.dp)
+        ) {
+            Text(
+                message,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Dismiss",
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }

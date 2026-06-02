@@ -26,6 +26,8 @@ class WeatherRepository {
 
     companion object {
         const val USER_AGENT = "AMWeather/1.0 github.com/yuriamw/amweather"
+
+        private fun Double.round4(): Double = kotlin.math.round(this * 10000.0) / 10000.0
     }
 
     private val openMeteoApi: WeatherApi by lazy {
@@ -69,8 +71,8 @@ class WeatherRepository {
                     .toWeatherData()
             WeatherSource.MET_NORWAY ->
                 metNorwayApi.getForecast(
-                    latitude = "%.4f".format(lat).toDouble(),
-                    longitude = "%.4f".format(lon).toDouble()
+                    latitude = lat.round4(),
+                    longitude = lon.round4()
                 ).toWeatherData()
         }
     }
@@ -88,8 +90,8 @@ class WeatherRepository {
         // get moon data from MET Norway
         val date = todayDate()
         val offset = utcOffset()
-        val roundedLat = "%.4f".format(lat).toDouble()
-        val roundedLon = "%.4f".format(lon).toDouble()
+        val roundedLat = lat.round4()
+        val roundedLon = lon.round4()
 
         val moonData = runCatching {
             metNorwaySunriseApi.getMoon(roundedLat, roundedLon, date, offset)
@@ -125,8 +127,8 @@ class WeatherRepository {
                     .toForecastData()
             WeatherSource.MET_NORWAY ->
                 metNorwayApi.getForecast(
-                    latitude = "%.4f".format(lat).toDouble(),
-                    longitude = "%.4f".format(lon).toDouble()
+                    latitude = lat.round4(),
+                    longitude = lon.round4()
                 ).toForecastData()
         }
     }
